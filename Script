@@ -1,0 +1,221 @@
+# 🔐 Authentication Attacks Lab
+
+> **Course:** CIS*6540 – Advanced Penetration Testing and Exploit Development  
+> **Institution:** University of Guelph  
+> **Author:** Sumesh Kumar
+
+---
+
+## 📖 Overview
+
+This repository contains my Lab 06 project focused on **Authentication Attacks**. The objective of this lab was to understand how attackers obtain credentials, recover passwords, dump authentication secrets, and perform both offline and online password attacks in a controlled penetration testing environment.
+
+All activities were conducted in an isolated lab environment for educational purposes only.
+
+---
+
+## 🎯 Learning Objectives
+
+- Understand Windows authentication mechanisms
+- Extract credentials from system memory
+- Recover and crack password hashes
+- Perform offline password cracking
+- Demonstrate online password attacks
+- Evaluate authentication weaknesses
+- Recommend defensive security controls
+
+---
+
+# 🛠️ Tools Used
+
+- Metasploit Framework
+- Meterpreter
+- Kiwi (Mimikatz)
+- Cain & Abel
+- John the Ripper
+- Hashcat
+- Hydra
+- CrackStation
+- Kali Linux
+- Ubuntu Linux
+- Windows 7
+- Windows 10
+
+---
+
+# 🧪 Lab Exercises
+
+## 1. Credential Dumping using Kiwi (Mimikatz)
+
+The Meterpreter Kiwi extension was used to extract authentication credentials from Windows memory.
+
+### Objectives
+
+- Load Kiwi
+- Dump passwords
+- Extract NTLM hashes
+- Review authentication artifacts
+
+**Screenshot**
+
+`kiwi_passwords.jpg`
+
+---
+
+## 2. Windows Password Recovery using Cain & Abel
+
+Cain & Abel was used to recover Windows password hashes and analyze authentication data.
+
+### Objectives
+
+- Import hashes
+- Recover passwords
+- Analyze NTLM authentication
+
+**Screenshot**
+
+`ca_win7.jpg`
+
+---
+
+## 3. Offline Password Cracking with John the Ripper
+
+John the Ripper was used to crack password hashes collected during the lab.
+
+### Objectives
+
+- Prepare password hashes
+- Execute dictionary attack
+- Analyze recovered credentials
+
+**Screenshot**
+
+`jtr_ubuntu8.jpg`
+
+---
+
+## 4. Password Cracking with Hashcat
+
+Hashcat was used to demonstrate GPU/CPU accelerated password cracking.
+
+### Objectives
+
+- Load NTLM hashes
+- Run dictionary attack
+- Evaluate password complexity
+
+**Screenshot**
+
+`hc_ubuntu18.jpg`
+
+---
+
+## 5. Online Password Attack using Hydra
+
+Hydra was used to perform an online authentication attack against a test login service.
+
+### Objectives
+
+- Configure attack parameters
+- Execute brute-force attack
+- Validate recovered credentials
+
+**Screenshot**
+
+`hydra_online_attack.jpg`
+
+---
+
+## 6. Login Verification
+
+Recovered credentials were verified against the target login page.
+
+**Screenshot**
+
+`login_test.jpg.png`
+
+---
+
+## 7. Password Recovery using CrackStation
+
+Recovered hashes were also tested against CrackStation's online password database.
+
+### Objectives
+
+- Lookup password hashes
+- Compare offline vs online recovery
+- Understand password reuse risks
+
+**Screenshot**
+
+`Crackstation Daddy pass.png`
+
+---
+
+# 📂 Repository Structure
+
+```
+.
+├── lab06.pdf
+├── kiwi_passwords.jpg
+├── ca_win7.jpg
+├── jtr_ubuntu8.jpg
+├── hc_ubuntu18.jpg
+├── hydra_online_attack.jpg
+├── login_test.jpg.png
+├── Crackstation Daddy pass.png
+└── README.md
+```
+
+---
+
+# 🔒 Security Lessons Learned
+
+This lab demonstrates why organizations should implement:
+
+- Strong password policies
+- Multi-Factor Authentication (MFA)
+- Password managers
+- Credential Guard
+- LSASS protection
+- Account lockout policies
+- Least privilege access
+- Endpoint Detection and Response (EDR)
+- Security monitoring (SIEM)
+- Regular password audits
+
+---
+
+# ⚠️ Disclaimer
+
+This repository contains educational material completed as part of authorized cybersecurity coursework.
+
+The techniques demonstrated are intended **only for legal penetration testing, cybersecurity education, and defensive security research**. Unauthorized use against systems without explicit permission may violate applicable laws and organizational policies.
+
+---
+
+# 📚 Skills Demonstrated
+
+- Penetration Testing
+- Authentication Security
+- Credential Dumping
+- Password Cracking
+- Windows Security
+- Linux Security
+- Offensive Security
+- Threat Analysis
+- Security Assessment
+- Ethical Hacking
+
+---
+
+## ⭐ Author
+
+**Sumesh Kumar**
+
+Master of Cybersecurity and Threat Intelligence  
+University of Guelph
+
+---
+
+If you found this repository useful, consider giving it a ⭐.
