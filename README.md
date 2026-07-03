@@ -1,11 +1,4 @@
-# Lab 06 — Attacks on Authentication
-
-**Course:** CIS*6540 — Advanced Penetration Testing and Exploit Development  
-**Institution:** University of Guelph  
-**Author:** Sumesh Kumar (`prashersumesh`)  
-**Date:** July 2026  
-**Environment:** Operation Shadow Hunt Lab
-
+#
 ---
 
 ## Overview
